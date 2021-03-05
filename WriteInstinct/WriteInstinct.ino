@@ -48,7 +48,7 @@ void writeConst() {
 #endif
   for (byte i = 0; i < DOF; i++) {
 #ifndef AUTORUN
-    if (resetJointCalibrationQ == 'Y')
+    if (resetJointCalibrationQ == 'Y' || resetJointCalibrationQ == 'y')
       EEPROM.update(CALIB + i, calibs[i]);
 #endif
     EEPROM.update(PIN + i, pins[i]);
@@ -71,7 +71,7 @@ void saveSkillInfoFromProgmemToOnboardEeprom() {
 #ifndef AUTORUN
   while (!Serial.available());
   char choice = Serial.read();
-  PT(choice == 'Y' ? "Will" : "Won't");
+  PT((choice == 'Y' || choice == 'y') ? "Will" : "Won't");
 #endif
   PTL(" overwrite Instincts on external I2C EEPROM!");
 #endif
@@ -90,7 +90,7 @@ void saveSkillInfoFromProgmemToOnboardEeprom() {
     if (!EEPROMOverflow)
       if (skillNameWithType[s][len - 1] == 'I'
 #ifndef AUTORUN
-          && choice == 'Y'
+          && (choice == 'Y' || choice == 'y')
 #endif
          ) { //  if there's instinct and there's i2c eeprom, and user decide to update.
         // save the data array to i2c eeprom. its address will be saved to onboard eeprom
@@ -100,8 +100,8 @@ void saveSkillInfoFromProgmemToOnboardEeprom() {
 #endif
     skillAddressShift += 2; // one int (2 bytes) for address
   }
-  PTLF("  *********** Notice! *********");
-  PTLF("    Maximal storage of onboard EEPROM is 1024 bytes.");
+  PTLF("  ***");
+  PTLF("    On-chip EEPROM has 1024 bytes.");
   PTF("\tInstinctive dictionary used ");
   PT(SKILLS + skillAddressShift);
   PT(" bytes (");
@@ -109,7 +109,7 @@ void saveSkillInfoFromProgmemToOnboardEeprom() {
   PTLF(" %)!");
 #ifdef I2C_EEPROM
 #ifndef AUTORUN
-  if (choice == 'Y')
+  if (choice == 'Y' || choice == 'y')
 #endif
   {
     PTF("    Maximal storage of external I2C EEPROM is ");
@@ -122,7 +122,7 @@ void saveSkillInfoFromProgmemToOnboardEeprom() {
     PTLF(" %)!");
   }
 #endif
-  PTLF("  *****************************");
+  PTLF("  ***");
   PTLF("Finished!");
 }
 
@@ -239,8 +239,7 @@ void setup() {
 
   // wait for ready
   while (Serial.available() && Serial.read()); // empty buffer
-  PTLF("\n* Include your robot's header file in OpenCat.h");
-  PTLF("\n* Change the \"V*_*\" in \"#define NyBoard_V1_0\" according to your NyBoard version!");
+  PTLF("\n* Change \"#define NyBoard_V*_*\" in OpenCat.h according to your NyBoard version!");
   PTLF("\n* OpenCat Writing Constants to EEPROM...");
   writeConst(); // only run for the first time when writing to the board.
   beep(30);
@@ -260,16 +259,16 @@ void setup() {
       calibratedPWM(i, motion.dutyAngles[i]);
     }
     shutServos();
-    token = 'd';
+    token = T_REST;
   }
-  beep(30);
+  beep(15, 50, 50, 5);
   // start message
   PTLF("\nCalibrate MPU? (Y/n)");
 #ifndef AUTORUN
   while (!Serial.available());
   choice = Serial.read();
   PTLF("Gotcha!");
-  if (choice == 'Y')
+  if (choice == 'Y' || choice == 'y')
 #endif
   {
     PTLF("\n* MPU6050 Calibration Routine");
@@ -293,7 +292,7 @@ void setup() {
 
 void loop() {
 #ifndef AUTORUN
-  if (choice == 'Y')
+  if (choice == 'Y' || choice == 'y')
 #endif
   {
     if (stage == 0) {
@@ -352,31 +351,27 @@ void loop() {
     // this block handles argumentless tokens
 
     switch (token) {
-      case 'g': {
+      case T_GYRO: {
           printMPU = !printMPU;
           break;
         }
-      // if (token == 'h')
+      // if (token == T_HELP)
       //   PTLF("** Help Information **");// print the help document
-      case 'z': { //turn off servos only
-          shutServos();
-          break;
-        }
-      case 'd' : {
+      case T_REST : {
           skillByName("rest");
           break;
         }
-      case 'j': { //show the list of current joint angles
+      case T_JOINTS: { //show the list of current joint angles
           printRange(DOF);
           printList(currentAng);
           break;
         }
-      case 's': {
+      case T_SAVE: {
           PTLF("save calibration");
           saveCalib(servoCalibs);
           break;
         }
-      case 'a': {
+      case T_ABORT: {
           PTLF("abort calibration");
           for (byte i = 0; i < DOF; i++) {
             servoCalibs[i] = servoCalib( i);
@@ -384,8 +379,8 @@ void loop() {
           break;
         }
       // this block handles array like arguments
-      case 'c':
-      case 'm': {
+      case T_CALIBRATE:
+      case T_MOVE: {
           int target[2] = {};
           String inBuffer = Serial.readStringUntil('\n');
           byte inLen = 0;
@@ -399,7 +394,7 @@ void loop() {
             inLen++;
           }
 
-          if (token == 'c') {
+          if (token == T_CALIBRATE) {
             //PTLF("calibrating [ targetIdx, angle ]: ");
             if (strcmp(lastCmd, "c")) { //first time entering the calibration function
               motion.loadBySkillName("calib");
@@ -413,7 +408,7 @@ void loop() {
             yield();
 
           }
-          else if (token == 'm') {
+          else if (token == T_MOVE) {
             PTLF("moving [ targetIdx, angle ]: ");
             currentAng[target[0]] = motion.dutyAngles[target[0]] = target[1];
           }
@@ -452,9 +447,9 @@ void loop() {
       //      PT(token);
       //      PT(cmd);
       //      PT("\n");
-      if (token == 'w') {}; //some words for undefined behaviors
+      if (token == T_UNDEFINED) {}; //some words for undefined behaviors
 
-      if (token == 'k') { //validating key
+      if (token == T_SKILL) { //validating key
         motion.loadBySkillName(cmd);
         //motion.info();
 #ifdef DEVELOPER
@@ -472,7 +467,7 @@ void loop() {
         transform( motion.dutyAngles, 1, 1, firstValidJoint);
         if (!strcmp(cmd, "rest")) {
           shutServos();
-          token = 'd';
+          token = T_REST;
         }
       }
       else {
@@ -490,7 +485,7 @@ void loop() {
       printList(ag, 6);
     }
 
-    if (token == 'k') {
+    if (token == T_SKILL) {
 #ifndef HEAD  //skip head
       if (jointIdx == 0)
         jointIdx = 2;
@@ -688,7 +683,6 @@ void calibration() {
     */
 
     if (ready == 6) {
-      delay(100);
       beep(100, 1000);
 #ifdef PIXEL_PIN
       for (int i = 0; i < NUMPIXELS - 1; i++) { // For each pixel...

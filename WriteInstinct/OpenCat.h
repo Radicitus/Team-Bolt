@@ -136,6 +136,27 @@ void meow(int repeat = 0, int pause = 200, int startF = 50,  int endF = 200, int
     if (repeat)delay(pause);
   }
 }
+
+//token list
+#define T_ABORT     'a'
+#define T_BEEP      'b'
+#define T_CALIBRATE 'c'
+#define T_REST      'd'
+#define T_GYRO      'g'
+#define T_HELP      'h'
+#define T_INDEXED   'i'
+#define T_JOINTS    'j'
+#define T_SKILL     'k'
+#define T_LISTED    'l'
+#define T_MOVE      'm'
+#define T_MELODY    'o'
+#define T_PAUSE     'p'
+#define T_RAMP      'r'
+#define T_SAVE      's'
+#define T_MEOW      'u'
+#define T_UNDEFINED 'w'
+#define T_XLEG      'x'
+
 //abbreviation //gait/posture/function names
 #define K00 "d"       //rest and shutdown all servos 
 #define K01 "F"       //forward
@@ -145,7 +166,7 @@ void meow(int repeat = 0, int pause = 200, int startF = 50,  int endF = 200, int
 #define K11 "balance" //neutral stand up posture
 #define K12 "R"       //right
 
-#define K20 "z"       //shut off all servos 
+#define K20 "p"       //pause motion and shut off all servos 
 #define K21 "B"       //backward
 #define K22 "c"       //calibration mode with IMU turned off
 
@@ -159,7 +180,7 @@ void meow(int repeat = 0, int pause = 200, int startF = 50,  int endF = 200, int
 #define K42 "buttUp"    //butt up
 #else //BITTLE
 #define K41 "rn"      //run
-#define K42 "bd"      //bound
+#define K42 "ck"      //check around
 #endif
 
 #define K50 "hi"      //greeting
@@ -229,7 +250,7 @@ byte pins[] = {12, 11, 3, 4,
 
 #ifdef PIXEL_PIN
 #include <Adafruit_NeoPixel.h>
-#define NUMPIXELS 7 
+#define NUMPIXELS 7
 #define LIT_ON 30
 Adafruit_NeoPixel pixels(NUMPIXELS, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 #endif
@@ -405,7 +426,7 @@ void copyDataFromPgmToI2cEeprom(unsigned int &eeAddress, unsigned int pgmAddress
   if (period < -1) {
     skillHeader = 7; //rows, roll, tilt, loopStart, loopEnd, loopNumber, angle ratio <1,2>
     //(if the angles are larger than 128, they will be divided by angle ratio)
-    frameSize = 18;
+    frameSize = 20;
   }
   else
     frameSize = period > 1 ? WALKING_DOF : 16;
@@ -515,7 +536,7 @@ class Motion {
       byte skillHeader = 4;
       byte frameSize;
       if (period < -1) {
-        frameSize = 18;
+        frameSize = 20;
         for (byte i = 0; i < 3; i++)
           loopCycle[i] = pgm_read_byte(pgmAddress + skillHeader + i);
         skillHeader = 7;
@@ -545,7 +566,7 @@ class Motion {
       byte frameSize;
       if (period < -1) {
         skillHeader = 7;
-        frameSize = 18;
+        frameSize = 20;
         Wire.requestFrom(DEVICE_ADDRESS, 3);
         for (byte i = 0; i < 3; i++)
           loopCycle[i] = Wire.read();
@@ -625,7 +646,8 @@ void assignSkillAddressToOnboardEeprom() {
   PT(sizeof(progmemPointer) / 2);
   PTL(" skill addresses...");
   for (byte s = 0; s < sizeof(progmemPointer) / 2; s++) { //save skill info to on-board EEPROM, load skills to SkillList
-    PTL(s);
+    if (s)
+      PTL(s);
     byte nameLen = EEPROM.read(SKILLS + skillAddressShift++); //without last type character
     //PTL(nameLen);
     /*for (int n = 0; n < nameLen; n++)
@@ -738,7 +760,7 @@ inline int8_t adaptiveCoefficient(byte idx, byte para) {
 }
 
 float adjust(byte i) {
-  float rollAdj, pitchAdj;
+  float rollAdj, pitchAdj, adj;
   if (i == 1 || i > 3)  {//check idx = 1
     bool leftQ = (i - 1 ) % 4 > 1 ? true : false;
     //bool frontQ = i % 4 < 2 ? true : false;
@@ -789,24 +811,31 @@ void shutServos() {
     pwm.setPWM(i, 0, 4096);
   }
 }
-template <typename T> void transform( T * target, byte angleDataRatio=1, float speedRatio = 1, byte offset = 0) {
-  int *diff = new int [DOF - offset], maxDiff = 0;
-  for (byte i = offset; i < DOF; i++) {
-    diff[i - offset] =   currentAng[i] - target[i - offset]*angleDataRatio;
-    maxDiff = max(maxDiff, abs( diff[i - offset]));
-  }
-  byte steps = byte(round(maxDiff / 1.0/*degreeStep*/ / speedRatio));//default speed is 1 degree per step
-
-  for (byte s = 0; s <= steps; s++) {
+int8_t countDown = 0;
+template <typename T> void transform( T * target, byte angleDataRatio = 1, float speedRatio = 1, byte offset = 0) {
+  countDown = 5;
+  if (speedRatio == 0)
+    allCalibratedPWM(target, 8);
+  else {
+    int *diff = new int [DOF - offset], maxDiff = 0;
     for (byte i = offset; i < DOF; i++) {
-      float dutyAng = (target[i - offset]*angleDataRatio + (steps == 0 ? 0 : (1 + cos(M_PI * s / steps)) / 2 * diff[i - offset]));
-      calibratedPWM(i,  dutyAng);
-      //delayMicroseconds(2);
+      diff[i - offset] =   currentAng[i] - target[i - offset] * angleDataRatio;
+      maxDiff = max(maxDiff, abs( diff[i - offset]));
     }
+
+    byte steps = byte(round(maxDiff / 1.0/*degreeStep*/ / speedRatio));//default speed is 1 degree per step
+
+    for (byte s = 0; s <= steps; s++) {
+      for (byte i = offset; i < DOF; i++) {
+        float dutyAng = (target[i - offset] * angleDataRatio + (steps == 0 ? 0 : (1 + cos(M_PI * s / steps)) / 2 * diff[i - offset]));
+        calibratedPWM(i,  dutyAng);
+        //delayMicroseconds(2);
+      }
+    }
+    delete [] diff;
+    //  printList(currentAng);
+    //PTL();
   }
-  delete [] diff;
-  //  printList(currentAng);
-  //  PTL();
 }
 
 
