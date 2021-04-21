@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voice Recognition</title>
+</head>
+<body>
+    <h1>Voice Command for Team Bolt RoboPupper</h1>
+
+    <div>
+        <form action="/speech" method="get">
+            <button type="submit">Begin Command</button>
+        </form>
+    </div>
+
+    <div>
+        {% if text == "" %}
+            <h2>You have not said anything yet!</h2>
+        {% else %}
+            <h2>Your command is:</h2>
+            <p>{{ text }}</p>
+            <p>Which matches with: <b>{{ command }}</b></p>
+            <p><b>Is that right?</b></p>
+
+            <div>
+                <form style="display: inline-block" action="/begin_command" method="get">
+                    <button type="submit">Yes</button>
+                </form>
+
+                <form style="display: inline-block" action="/" method="get">
+                    <button type="submit">No</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
