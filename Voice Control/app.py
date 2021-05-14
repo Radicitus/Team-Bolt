@@ -42,9 +42,9 @@ def begin_command(command):
     comm_url = team_bolt_raspi_url + "/command/" + command_dict[command]
     try:
         response = requests.post(comm_url)
-        flash("Command sent successfully!")
+        flash("Command '" + command + "' sent successfully!")
         return redirect(url_for("root"))
     except:
-        flash("Sending command failed.")
+        flash("Sending command '" + command + "' failed.")
         return redirect(url_for("root"))
 
