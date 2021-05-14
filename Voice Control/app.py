@@ -18,6 +18,7 @@ command_dict = {
     "balance": "kbalance",
     "bound": "kbd",
     "down": "d",
+
 }
 current_command = []
 
@@ -30,9 +31,10 @@ def root():
 def begin_speech():
     text = speech()
     if text in command_dict:
-        return render_template('app.html', text=text, command=command_dict[text])
+        return render_template('app.html', text=text, commands=command_dict, command=command_dict[text])
     else:
-        return render_template('app.html', text="commError", command=text.capitalize() + " is not a valid command!")
+        flash(text.capitalize() + " is not a valid command.")
+        return redirect(url_for("root"))
 
 
 @app.route('/begin-command/<command>')

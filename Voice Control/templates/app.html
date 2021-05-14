@@ -58,11 +58,11 @@
 
     <div>
         {% if text == "" %}
-            <h2>You have not said anything yet!</h2>
+            <h3>You have not said anything yet!</h3>
         {% else %}
             <h2>Your command is:</h2>
-            <h3>{{ text }}</h3>
-            <p>Which matches with: <b>{{ command }}</b></p>
+            <h3 style="color: #f44336">{{ text }}</h3>
+            <p>Which matches with: <b style="font-size: large; color: #f44336">{{ command }}</b></p>
             <p><b>Is that right?</b></p>
 
             <div>
@@ -75,6 +75,15 @@
                 </form>
             </div>
         {% endif %}
+    </div>
+    <br>
+    <h2>Click to manually send command:</h2>
+    <div>
+        {% for key,value in commands.items() %}
+            <form style="display: inline-block" action="/begin-command/{{key}}" method="get">
+                    <button type="submit">{{key}}</button>
+            </form>
+        {% endfor %}
     </div>
 </body>
 </html>
