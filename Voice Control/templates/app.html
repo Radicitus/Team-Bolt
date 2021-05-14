@@ -81,7 +81,7 @@
     <div>
         {% for key,value in commands.items() %}
             <form style="display: inline-block" action="/begin-command/{{key}}" method="get">
-                    <button type="submit">{{key}}</button>
+                    <button type="submit">{{key.capitalize()}}</button>
             </form>
         {% endfor %}
     </div>
