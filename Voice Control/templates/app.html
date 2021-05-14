@@ -1,11 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    <style>
+    .alert {
+      opacity: 1;
+      transition: opacity 0.6s; /* 600ms to fade out */
+    }
+    </style>
+
+    <script>
+    // Get all elements with class="closebtn"
+    var close = document.getElementsByClassName("closebtn");
+    var i;
+
+    // Loop through all close buttons
+    for (i = 0; i < close.length; i++) {
+      // When someone clicks on a close button
+      close[i].onclick = function(){
+
+        // Get the parent of <span class="closebtn"> (<div class="alert">)
+        var div = this.parentElement;
+
+        // Set the opacity of div to 0 (transparent)
+        div.style.opacity = "0";
+
+        // Hide the div after 600ms (the same amount of milliseconds it takes to fade out)
+        setTimeout(function(){ div.style.display = "none"; }, 600);
+      }
+    }
+    </script>
+
+    <link rel="stylesheet" href="../static/css.css">
+
     <meta charset="UTF-8">
     <title>Voice Recognition</title>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert">
+              <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+              {{message}}
+          </div>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
 </head>
 <body>
-    <h1>Voice Command for Team Bolt RoboPupper</h1>
+    <h1><a href="/">Command Center for Team Bolt RoboPupper</a></h1>
 
     <div>
         <form action="/speech" method="get">
@@ -18,12 +61,12 @@
             <h2>You have not said anything yet!</h2>
         {% else %}
             <h2>Your command is:</h2>
-            <p>{{ text }}</p>
+            <h3>{{ text }}</h3>
             <p>Which matches with: <b>{{ command }}</b></p>
             <p><b>Is that right?</b></p>
 
             <div>
-                <form style="display: inline-block" action="/begin_command" method="get">
+                <form style="display: inline-block" action="/begin-command/{{text}}" method="get">
                     <button type="submit">Yes</button>
                 </form>
 
