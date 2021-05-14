@@ -33,4 +33,3 @@ def begin_speech():
         response = requests.post(comm_url)
         print(response)
     return render_template('app.html', text=text, command="TEST COMMAND")
-
