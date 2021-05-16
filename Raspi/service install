@@ -1,0 +1,13 @@
+Reference: https://stackoverflow.com/questions/57031864/running-flask-app-automatically-after-boot-does-not-work-correctly
+
+[Unit]
+Description=Command Sever for Team Bolt RoboPup
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi/Desktop/Team-Bolt/Raspi/commandserver
+ExecStart=flask run --host=0.0.0.0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
