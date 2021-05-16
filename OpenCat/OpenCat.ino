@@ -72,7 +72,7 @@ void dmpDataReady() {
 // https://brainy-bits.com/blogs/tutorials/ir-remote-arduino
 #include <IRremote.h>
 /*-----( Declare objects )-----*/
-IRrecv irrecv(IR_RECIEVER);     // create instance of 'irrecv'
+IRrecv irrecv(IR_RECEIVER);     // create instance of 'irrecv'
 decode_results results;      // create instance of 'decode_results'
 
 String translateIR() // takes action based on IR code received
@@ -419,6 +419,7 @@ void loop() {
     PTL("check battery");
     PTL(voltage);//relative voltage
     meow();
+    delay(500);
   }
   else {
     newCmd[0] = '\0';
@@ -586,12 +587,18 @@ void loop() {
                 if (strcmp(lastCmd, "c")) { //first time entering the calibration function
                   strcpy(lastCmd, "c");
                   motion.loadBySkillName("calib");
-
                   transform( motion.dutyAngles);
-
+                  checkGyro=false;
                 }
-                if (inLen == 2)
+                if (inLen == 2) {
+                  if (target[1] >= 1001) { // Using 1001 for incremental calibration. 1001 is adding 1 degree, 1002 is adding 2 and 1009 is adding 9 degrees
+                    target[1] = servoCalibs[target[0]] + target[1] - 1000;
+                  } else if (target[1] <= -1001) { // Using -1001 for incremental calibration. -1001 is removing 1 degree, 1002 is removing 2 and 1009 is removing 9 degrees
+                    target[1] = servoCalibs[target[0]] + target[1] + 1000;
+                  }
+                  
                   servoCalibs[target[0]] = target[1];
+                }
                 PTL();
                 printRange(DOF);
                 printList(servoCalibs);
