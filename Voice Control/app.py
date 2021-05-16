@@ -40,11 +40,12 @@ def begin_speech():
 @app.route('/begin-command/<command>')
 def begin_command(command):
     comm_url = team_bolt_raspi_url + "/command/" + command_dict[command]
+    print(comm_url)
     try:
         response = requests.post(comm_url)
-        flash("Command '" + command + "' sent successfully!")
+        flash("SUCCESS: Command '" + command + "' sent successfully!")
         return redirect(url_for("root"))
     except:
-        flash("Sending command '" + command + "' failed.")
+        flash("ERROR: Sending command '" + command + "' failed.")
         return redirect(url_for("root"))
 

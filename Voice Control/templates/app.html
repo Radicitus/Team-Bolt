@@ -34,17 +34,23 @@
     <link rel="stylesheet" href="../static/css.css">
 
     <meta charset="UTF-8">
-    <title>Voice Recognition</title>
+    <title>Command Center</title>
     {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        {% for message in messages %}
-          <div class="alert">
-              <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-              {{message}}
-          </div>
-        {% endfor %}
-        </ul>
-      {% endif %}
+        {% if messages %}
+            {% for message in messages %}
+                {% if message[:5] == "ERROR" %}
+                    <div class="alert" style="background-color: red;">
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        {{message}}
+                    </div>
+                {% else %}
+                    <div class="alert" style="background-color: limegreen;">
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        {{message}}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     {% endwith %}
 </head>
 <body>
