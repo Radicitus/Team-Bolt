@@ -33,7 +33,7 @@ def begin_speech():
     if text in command_dict:
         return render_template('app.html', text=text, commands=command_dict, command=command_dict[text])
     else:
-        flash(text.capitalize() + " is not a valid command.")
+        flash("ERROR: " + text.capitalize() + " is not a valid command.")
         return redirect(url_for("root"))
 
 
