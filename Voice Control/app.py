@@ -40,7 +40,7 @@ def begin_speech():
 @app.route('/begin-command/<command>')
 def begin_command(command):
     comm_url = team_bolt_raspi_url + "/command/" + command_dict[command]
-    print(comm_url)
+    # print(comm_url)
     try:
         response = requests.post(comm_url)
         flash("SUCCESS: Command '" + command + "' sent successfully!")
