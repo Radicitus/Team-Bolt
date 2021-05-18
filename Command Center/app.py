@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, flash
+from flask import Flask, redirect, url_for, flash, request
 from flask import render_template
 from microphone_recognition import speech
 import requests
@@ -29,7 +29,7 @@ command_dict = {
     "pee": "kpee",
     "push up": "kpu",
 }
-current_command = []
+
 
 @app.route('/')
 def root():
@@ -58,3 +58,16 @@ def begin_command(command):
         flash("ERROR: Sending command '" + command + "' failed.")
         return redirect(url_for("root"))
 
+
+@app.route('/text-command/')
+def text_command():
+    command = request.args.get('c')
+    comm_url = team_bolt_raspi_url + "/command/" + command
+    print(comm_url)
+    try:
+        response = requests.post(comm_url)
+        flash("SUCCESS: Command '" + command + "' sent successfully!")
+        return redirect(url_for("root"))
+    except:
+        flash("ERROR: Sending command '" + command + "' failed.")
+        return redirect(url_for("root"))
