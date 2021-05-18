@@ -63,7 +63,7 @@ def begin_command(command):
 def text_command():
     command = request.args.get('c')
     comm_url = team_bolt_raspi_url + "/command/" + command
-    print(comm_url)
+    # print(comm_url)
     try:
         response = requests.post(comm_url)
         flash("SUCCESS: Command '" + command + "' sent successfully!")
