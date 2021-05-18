@@ -68,8 +68,8 @@
 */
 
 //postures and movements trained by RongzhongLi
-#include "InstinctBittle.h" //activate the correct header file according to your model
-//#include "InstinctNybble.h"
+//#include "InstinctBittle.h" //activate the correct header file according to your model
+#include "InstinctNybble.h"
 
 //#define NyBoard_V0_1
 //#define NyBoard_V0_2
