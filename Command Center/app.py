@@ -8,26 +8,26 @@ app.secret_key = 'dev'
 
 team_bolt_raspi_url = "http://team-bolt-raspi.local:5000"
 command_dict = {
+    "down": "d",
+    "balance": "kbalance",
+    "hi": "khi",
+    "push up": "kpu",
+    "sit": "ksit",
+    "butt up": "kbuttUp",
+    "look up": "klu",
     "walk forward": "kwkF",
     "walk forward left": "kwkL",
     "walk forward right": "kwkR",
     "walk backward": "kbk",
     "walk backward left": "kbkL",
     "walk backward right": "kbkR",
-    "balance": "kbalance",
     "bound": "kbd",
-    "down": "d",
     "pause": "p",
     "tip toe": "kvt",
-    "look up": "klu",
-    "butt up": "kbuttUp",
     "lie": "kly",
     "lifted": "klifted",
-    "sit": "ksit",
     "sleep [WIP]": "ksleep",
-    "hi": "khi",
     "pee": "kpee",
-    "push up": "kpu",
 }
 
 
