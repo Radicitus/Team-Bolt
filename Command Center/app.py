@@ -11,7 +11,7 @@ command_dict = {
     "down": "d",
     "balance": "kbalance",
     "hi": "khi",
-    "push up": "kpu",
+    "push-up": "kpu",
     "sit": "ksit",
     "butt up": "kbuttUp",
     "look up": "klu",
